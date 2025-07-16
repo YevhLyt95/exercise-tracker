@@ -1,15 +1,17 @@
 //Logic of POST/api/users/:_id/exercises and GET/api/users/:_id/logs
 const express = require('express');
+const User = require('../models/User');
 const router = express.Router();
 const Exercise = require('../models/Exercise');
 const e = require('express');
 
-router.post('../:id/exercises', async (req, res) => {
+router.post('/:id/exercises', async (req, res) => {
     const { description, duration, date } = req.body;
+    const dateObj = date ? new Date(date) : new Date();
     const userId = req.params.id;
 
     try {
-        const user = await UserActivation.findById(userId);
+        const user = await User.findById(userId);
         if (!user) return res.status(400).json({ error: 'User not found' });
 
         const exercise = new Exercise({
@@ -22,7 +24,8 @@ router.post('../:id/exercises', async (req, res) => {
         res.json({
             username: user.username,
             description: saved.description,
-            duration: saved.date.toDateString(),
+            duration: saved.duration,
+            date: dateObj.toDateString(),
             _id: user._id
         });
     } catch (err) {
