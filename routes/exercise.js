@@ -30,4 +30,34 @@ router.post('../:id/exercises', async (req, res) => {
     }
 });
 
+//filtration
+router.get('/:id/logs', async (req, res) => {
+    const { from, to, limit } = req.query;
+    const userId = req.params.id;
+    try {
+        const user = await User.findById(userId);
+        if (!user) return res.status(400).json({ error: 'User not found' });
+        //create filter by date
+        let dateFilter = {};
+        if (from) dateFilter.$gte = new Date(from);
+        if (to) dateFilter.$lte = new Date(to);
+
+        const query = { userId };
+        if (from || to) query.date = dateFilter;
+        const exercises = await Exercise.find(query)
+            .limit(limit ? parseInt(limit) : 0);
+        res.json({
+            username: user.username,
+            count: exercises.length,
+            _id: user._id,
+            log: exercises.map(e => ({
+                description: e.description,
+                duration: e.duration,
+                date: e.date.toDateString()
+            }))
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 module.exports = router;
